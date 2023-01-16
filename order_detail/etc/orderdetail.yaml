@@ -1,0 +1,16 @@
+Name: orderdetail.rpc
+ListenOn: 0.0.0.0:8021
+Etcd:
+  Hosts:
+  - 49.233.55.149:2379
+  Key: orderdetail.rpc
+Mysql:
+  StockTable:
+    User: "root"
+    Passwd: "19861029"
+    Addr: "152.136.253.191"
+    DBName: "shop_microservice_order"
+    Port: "3306"
+GoodsService:
+  Etcd:
+    Key: goodsdetail.rpc

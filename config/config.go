@@ -1,0 +1,7 @@
+package config
+
+var (
+	RETURN_STATES_NORMAL int64 = 1
+	RETURN_STATES_EMPTY  int64 = 21
+	RETURN_STATES_ERROR  int64 = 31
+)

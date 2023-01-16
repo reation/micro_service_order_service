@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package order_list;
+
+option go_package = "./protoc";
+
+message OrderListGoodsInfo {
+  int64 id = 1;
+  string title = 2;
+  string cover = 3;
+  int64 business_id = 5;
+  string business_name = 6;
+}
+
+message OrderListOrderInfo {
+  int64 id = 1;
+  string order_num = 2;
+  repeated OrderListGoodsInfo goods_list = 3;
+  double goods_prices = 4;
+  int64 goods_num = 5;
+  double goods_all_prices = 6;
+  double order_prices = 7;
+  double order_real_prices = 8;
+  int64 state = 9;
+  string update_time = 10;
+  string create_time = 11;
+}
+
+message OrderListRequest{
+  int64 user_id = 1;
+  int64 state = 2;
+  int64 id = 3;
+  int64 limit = 4;
+}
+
+message OrderListResponse{
+  int64 states = 1;
+  repeated OrderListOrderInfo order_list = 2;
+}
+
+service order_list {
+  rpc getOrderList (OrderListRequest) returns (OrderListResponse);
+}
