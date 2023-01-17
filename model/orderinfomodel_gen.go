@@ -29,6 +29,8 @@ type (
 		Update(ctx context.Context, data *OrderInfo) error
 		Delete(ctx context.Context, id int64) error
 		GetOrderInfoByOrderNum(ctx context.Context, orderNum string) (*[]OrderInfo, error)
+		GetOrderNumByUserID(ctx context.Context, userID, state, id, limit int64) (*[]string, error)
+		GetOrderInfoListByOrderNumList(ctx context.Context, orderNumList *[]string) (*[]OrderInfo, error)
 	}
 
 	defaultOrderInfoModel struct {
@@ -82,10 +84,49 @@ func (m *defaultOrderInfoModel) FindOne(ctx context.Context, id int64) (*OrderIn
 	}
 }
 
+func (m *defaultOrderInfoModel) GetOrderInfoListByOrderNumList(ctx context.Context, orderNumList *[]string) (*[]OrderInfo, error) {
+	orderNumSlice := make([]string, len(*orderNumList))
+	for k, v := range *orderNumList {
+		orderNumSlice[k] = fmt.Sprintf("\"%s\"", v)
+	}
+	query := fmt.Sprintf("select %s from %s where `order_num` in (%s) ", orderInfoRows, m.table, strings.Join(orderNumSlice, ","))
+	var resp []OrderInfo
+	err := m.conn.QueryRowsCtx(ctx, &resp, query)
+	fmt.Println("------------------00-------------------")
+	fmt.Println(resp)
+	fmt.Println("------------------00-------------------")
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
 func (m *defaultOrderInfoModel) GetOrderInfoByOrderNum(ctx context.Context, orderNum string) (*[]OrderInfo, error) {
 	query := fmt.Sprintf("select %s from %s where `order_num` = ? ", orderInfoRows, m.table)
 	var resp []OrderInfo
 	err := m.conn.QueryRowsCtx(ctx, &resp, query, orderNum)
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
+func (m *defaultOrderInfoModel) GetOrderNumByUserID(ctx context.Context, userID, state, id, limit int64) (*[]string, error) {
+	query := fmt.Sprintf("select DISTINCT(order_num) from %s where user_id = ? and id > ? ", m.table)
+	if state != 0 {
+		query = fmt.Sprintf("%s and state = %d", query, state)
+	}
+	query = fmt.Sprintf("%s  ORDER BY id asc limit ?  ", query)
+	var resp []string
+	err := m.conn.QueryRowsCtx(ctx, &resp, query, userID, id, limit)
 	switch err {
 	case nil:
 		return &resp, nil
